@@ -1,0 +1,166 @@
+<style>
+  .container {
+    margin-top: 30px;
+  }
+
+  .add-car {
+    margin-bottom: 30px;
+  }
+
+  .no-task {
+    padding-left: 20px;
+    padding-bottom: 10px;
+  }
+
+  .get-tasks {
+    padding-bottom: 10px;
+    padding-left: 10px;
+  }
+
+  .list-car {
+    margin-bottom: 50px;
+  }
+
+  .btn-add-car {
+    margin-right: 10px;
+  }
+
+  .email-invalido {
+    width: 100%;
+    margin-top: 0.25rem;
+    font-size: 80%;
+    color: #dc3545;
+  }
+
+  .password-invalido {
+    width: 100%;
+    margin-top: 0.25rem;
+    font-size: 80%;
+    color: #dc3545;
+  }
+
+  .backdrop{
+    background-color:rgba(0,0,0,0.6);
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100vh;
+  }
+
+</style>
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item active" aria-current="page">Gerenciamento de tarefas</li>
+  </ol>
+</nav>
+<div class="container">
+  <div class="row">
+    <div class="no-task">
+      <button type="button" class="btn btn-primary" (click)="noTasks()">Estou sem tarefa</button>
+    </div>
+    <div class="get-tasks">
+      <button type="button" class="btn btn-dark" (click)="getTasks()">Buscar todas as tarefas</button>
+    </div>
+    <div class="get-tasks">
+      <button type="button" class="btn btn-success" (click)="getTasksByStatus('Concluído')">Buscar tarefas concluídas</button>
+    </div>
+    <div class="get-tasks">
+      <button type="button" class="btn btn-primary" (click)="getTasksByStatus('Pendente')">Buscar tarefas pendentes</button>
+    </div>
+  </div>
+  <div class="card list-car">
+    <h5 class="card-header">Lista de tarefas</h5>
+    <div class="card-body">
+      <table class="table">
+        <thead>
+        <tr>
+          <th scope="col">Id</th>
+          <th scope="col">Usuário</th>
+          <th scope="col">E-mail</th>
+          <th scope="col">Descrição</th>
+          <th scope="col">Status</th>
+          <th scope="col">Ações</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr *ngFor="let task of tasks">
+          <td>{{task.id}}</td>
+          <td>{{task.nome_usuario}}</td>
+          <td>{{task.email_usuario}}</td>
+          <td style="max-width: 200px">{{task.descricao}}</td>
+          <td>{{task.status}}</td>
+          <td>
+            <div>
+              <button type="button" [ngClass]="{'btn-success': task.status === 'Pendente', 'btn-primary': task.status !== 'Pendente'}" class="btn btn-sm" data-toggle="tooltip" data-placement="top" title="{{task.status === 'Pendente' ? 'Mudar para concluído' : 'Mudar para pendente'}}" (click)="changeStatus(task)"><fa-icon [icon]="task.status === 'Pendente' ? faCheck : faBackward"></fa-icon></button>
+              <button type="button" class="btn btn-warning btn-sm ml-1" data-toggle="tooltip" data-placement="top" title="Alterar registro"(click)="editTask(task)"><fa-icon [icon]="faEdit"></fa-icon></button>
+              <button type="button" class="btn btn-danger btn-sm ml-1" data-toggle="tooltip" data-placement="top" title="Apagar registro" (click)="deleteTask(task)"><fa-icon [icon]="faEraser"></fa-icon></button>
+            </div>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card add-car">
+    <h5 class="card-header">Adicionar/Atualizar Tarefa</h5>
+    <div class="card-body">
+      <form id="add-form" (ngSubmit)="f.form.valid && saveTask(f)" #f="ngForm" novalidate>
+        <div class="form-group">
+          <label for="nome_usuario">Nome usuário</label>
+          <input type="text" [(ngModel)]="task.nome_usuario" id="nome_usuario" name="nome_usuario" #nome_usuario="ngModel" required class="form-control" [ngClass]="{ 'is-invalid': f.submitted && nome_usuario.invalid }" placeholder="Digite o nome do usuário">
+          <div *ngIf="f.submitted && nome_usuario.invalid" class="invalid-feedback">
+            <div *ngIf="nome_usuario.errors">Nome do usuário é obrigatório</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="email_usuario">E-mail</label>
+          <input type="email" [(ngModel)]="task.email_usuario" id="email_usuario" name="email_usuario" #email_usuario="ngModel" required class="form-control" [ngClass]="{ 'is-invalid': f.submitted && email_usuario.invalid }" placeholder="Digite o e-mail do usuário">
+          <div *ngIf="f.submitted && email_usuario.invalid" class="invalid-feedback">
+            <div *ngIf="email_usuario.errors">E-mail do usuário é obrigatório</div>
+          </div>
+          <div class="email-invalido" *ngIf="f.submitted && !isValidEmail">
+            <div>O formato do e-mail é inválido</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="descricao">Descrição</label>
+          <input type="text" [(ngModel)]="task.descricao" id="descricao" name="descricao" #descricao="ngModel" required class="form-control" [ngClass]="{ 'is-invalid': f.submitted && descricao.invalid }" placeholder="Digite a descrição">
+          <div *ngIf="f.submitted && descricao.invalid" class="invalid-feedback">
+            <div *ngIf="descricao.errors">Descrição é obrigatório</div>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-add-car">Salvar</button>
+        <button type="reset" class="btn btn-secondary btn-add-car" (click)="cleanForm(f)">Cancelar</button>
+      </form>
+    </div>
+  </div>
+</div>
+<div class="backdrop" [ngStyle]="{'display':display}"></div>
+<div class="modal" tabindex="-1" role="dialog"  [ngStyle]="{'display':display}">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Senha supervisor</h4>
+        <button type="button" class="close" aria-label="Close" (click)="onCloseHandled()"><span aria-hidden="true">&times;</span></button>
+      </div>
+      <div class="modal-body">
+        <form id="supervisor-form" (ngSubmit)="fs.form.valid && setPasswordSupervisor(fs)" #fs="ngForm" novalidate>
+          <div class="form-group">
+            <label for="senha_supervisor">Senha:</label>
+            <input type="password" [(ngModel)]="task.senha_supervisor" id="senha_supervisor" name="senha_supervisor" #senha_supervisor="ngModel" required class="form-control" [ngClass]="{ 'is-invalid': fs.submitted && senha_supervisor.invalid }" placeholder="Digite a senha">
+            <div *ngIf="fs.submitted && senha_supervisor.invalid" class="invalid-feedback">
+              <div *ngIf="senha_supervisor.errors">Senha é obrigatória</div>
+            </div>
+            <div class="password-invalido" *ngIf="fs.submitted && !isValidPassword">
+              <div>Senha inválida</div>
+            </div>
+          </div>
+          <button type="button" class="btn btn-secondary m-1" data-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Alterar Status</button>
+        </form>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal !-->
